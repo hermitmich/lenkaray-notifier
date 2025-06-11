@@ -28,4 +28,20 @@ jobs:
         run: python notifier.py
         env:
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
-          EMAIL_TO:_
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      - name: Commit last_post.txt if changed
+        run: |
+          if [[ -f last_post.txt ]]; then
+            git add last_post.txt
+            git commit -m "Update last seen post" || echo "No changes to commit"
+            git push
+          fi
