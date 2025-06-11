@@ -1,4 +1,3 @@
-import requests
 import feedparser
 import os
 import smtplib
@@ -14,12 +13,12 @@ LAST_POST_FILE = "last_post.txt"
 EMAIL_FROM = "micheleliasbechara@gmail.com"
 EMAIL_TO = "micheleliasbechara@gmail.com"
 EMAIL_SUBJECT = "🆕 New blog post on LenkaRay.cz!"
-EMAIL_PASSWORD = "pfbl dqno orhq abtj"  # Use app password, not your main one
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")  # set in GitHub Secrets
 
-TELEGRAM_BOT_TOKEN = "8068453015:AAFoNIUZGtMlZwf3nc-IRZ-H42VpbaAO6UE"  # Replace with your Telegram bot token
-TELEGRAM_CHAT_ID = "663741483"               # Replace with your Telegram chat ID
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")  # set in GitHub Secrets
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")      # set in GitHub Secrets
 
-# ========== FUNCTIONS ==========
+# ========== MAIN FUNCTIONS ==========
 
 def get_latest_post():
     feed = feedparser.parse(FEED_URL)
@@ -30,16 +29,17 @@ def get_latest_post():
 
 def load_last_seen_post():
     if os.path.exists(LAST_POST_FILE):
-        with open(LAST_POST_FILE, "r") as f:
+        with open(LAST_POST_FILE, "r", encoding="utf-8") as f:
             return f.read().strip()
     return ""
 
 def save_last_seen_post(url):
-    with open(LAST_POST_FILE, "w") as f:
+    with open(LAST_POST_FILE, "w", encoding="utf-8") as f:
         f.write(url)
 
 def send_email_notification(post_url, post_title):
     body = f"New post published: {post_title}\n\nRead it here: {post_url}"
+
     msg = MIMEText(body, "plain", "utf-8")
     msg['Subject'] = Header(EMAIL_SUBJECT, "utf-8")
     msg['From'] = formataddr(("LenkaRay Notifier", EMAIL_FROM))
@@ -50,19 +50,19 @@ def send_email_notification(post_url, post_title):
         server.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
 
 def send_telegram_notification(post_url, post_title):
-    message = f"🆕 New post: {post_title}\n{post_url}"
+    import requests
+    message = f"🆕 New post published: *{post_title}*\nRead it here: {post_url}"
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    data = {
+    payload = {
         "chat_id": TELEGRAM_CHAT_ID,
-        "text": message
+        "text": message,
+        "parse_mode": "Markdown"
     }
-    response = requests.post(url, data=data)
-    if response.status_code != 200:
-        print(f"❌ Telegram error: {response.text}")
-    else:
-        print("✅ Telegram message sent.")
+    resp = requests.post(url, json=payload)
+    if not resp.ok:
+        print(f"❌ Telegram notification failed: {resp.text}")
 
-# ========== MAIN ==========
+# ========== RUN ==========
 
 def main():
     try:
@@ -82,3 +82,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
