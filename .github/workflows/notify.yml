@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write  # Needed to allow pushing to the repo
+  contents: write  # ✅ Needed for pushing last_post.txt
 
 jobs:
   check-for-new-post:
@@ -26,4 +26,6 @@ jobs:
 
       - name: Run notifier script
         run: python notifier.py
-        env
+        env:
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO:_
