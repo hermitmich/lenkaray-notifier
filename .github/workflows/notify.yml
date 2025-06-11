@@ -1,19 +1,19 @@
-name: LenkaRay RSS Notifier
+name: LenkaRay Blog Notifier
 
 on:
   schedule:
-    - cron: '0 8 * * *'  # runs daily at 8:00 UTC
-  workflow_dispatch:     # lets you trigger it manually
+    - cron: '0 9 * * *'  # runs daily at 09:00 UTC
+  workflow_dispatch:     # allows manual run from Actions tab
 
 jobs:
-  run-notifier:
+  notify:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
@@ -21,7 +21,10 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install feedparser
+          pip install requests feedparser
 
-      - name: Run notifier script
+      - name: Run notifier
         run: python notifier.py
+        env:
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
